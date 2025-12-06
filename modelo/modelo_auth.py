@@ -25,7 +25,3 @@ class ModeloUsuarios:
             if u["usuario"] == usuario and u["contrasena"] == contrasena:
                 return True
         return False
-
-    
-
-        
