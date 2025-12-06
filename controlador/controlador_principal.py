@@ -1,6 +1,6 @@
 # controlador/controlador_principal.py
 
-from vista.vista_imagenes import VistaImagenes
+from vista_imagenes import VistaImagenes
 # Se deben importar el resto de Vistas para la navegación:
 # from vista.vista_senales import VistaSenales
 # from vista.vista_tabulares import VistaTabulares
