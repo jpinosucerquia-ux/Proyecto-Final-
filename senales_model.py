@@ -12,6 +12,8 @@ class ModeloSenales:
     # -----------------------------
     # Cargar archivo .mat
     # -----------------------------
+    """Carga una señal desde un archivo MATLAB (.mat)."""
+
     def cargar_senal(self, ruta):
         data = loadmat(ruta)
 
@@ -24,6 +26,7 @@ class ModeloSenales:
     # -----------------------------
     # FFT por canal
     # -----------------------------
+    """Calcula FFT de cada canal y retorna un DataFrame."""
     def aplicar_fft(self):
         resultados = []
 
@@ -46,6 +49,7 @@ class ModeloSenales:
     # -----------------------------
     # Guardar CSV
     # -----------------------------
+    """Guarda el resultado de la FFT en CSV."""
     def guardar_fft_csv(self, df, ruta):
         os.makedirs(os.path.dirname(ruta), exist_ok=True)
         df.to_csv(ruta, index=False)
@@ -53,5 +57,7 @@ class ModeloSenales:
     # -----------------------------
     # Histograma (std por eje)
     # -----------------------------
+    """Calcula la desviación estándar a lo largo del eje indicado."""
+    
     def desviacion_estandar(self, eje=1):
         return np.std(self.senal, axis=eje)

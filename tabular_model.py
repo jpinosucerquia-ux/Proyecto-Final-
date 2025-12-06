@@ -1,6 +1,17 @@
+   # ============================================================
+# MODELO TABULAR (Datos CSV)
+# ============================================================
+
 import pandas as pd
 
+
 class ModeloTabular:
+    """
+    Modelo para:
+    - Cargar archivos CSV
+    - Mostrar columnas
+    - Extraer columnas individuales para graficar
+    """
 
     def __init__(self):
         self.df = None
@@ -10,11 +21,9 @@ class ModeloTabular:
         return self.df
 
     def obtener_columnas(self):
-        if self.df is None:
-            return []
-        return list(self.df.columns)
+        return list(self.df.columns) if self.df is not None else []
 
     def obtener_columna(self, nombre):
+        if self.df is None:
+            raise ValueError("Debe cargar un CSV primero.")
         return self.df[nombre]
-
-        
