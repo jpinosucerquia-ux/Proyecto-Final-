@@ -1,64 +1,52 @@
 # controlador/controlador_senales.py
-
-from modelo.modelo_senales import ModeloSenales 
+from PyQt5.QtWidgets import QFileDialog
+from vista.vistas_loader.vista_senales import VistaSenales
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class ControladorSenales:
-    """
-    Controlador para la gestión y procesamiento de señales biomédicas (ECG/EEG).
-    """
-    def __init__(self, vista_senales, modelo_senales):
-        self.vista = vista_senales
-        self.modelo = modelo_senales
+    def __init__(self, modelo):
+        self.modelo = modelo
+        self.vista = VistaSenales()
         
-        # Conexión de eventos
-        self.vista.ui.btn_cargar_senal.clicked.connect(self.cargar_archivo)
-        self.vista.ui.btn_calcular_fft.clicked.connect(self.calcular_fft_y_mostrar)
-        self.vista.ui.btn_graficar_espectro.clicked.connect(self.graficar_espectro)
-        self.vista.ui.btn_calcular_desviacion.clicked.connect(self.calcular_desviacion)
-
-    def cargar_archivo(self):
-        """
-        Carga el archivo .mat de la señal biomédica.
-        """
-        path = self.vista.abrir_dialogo_archivo()
-        if path:
-            self.modelo.cargar_senal(path)
-            self.vista.mostrar_estado_cargado(True)
-            # Opcional: Mostrar info básica de la señal cargada
-
-    def calcular_fft_y_mostrar(self):
-        """
-        Calcula la FFT, guarda el CSV y actualiza la tabla de la vista.
-        """
-        # Llama al método del modelo que calcula, organiza en DataFrame y guarda el CSV (Requisito 5)
-        df_resultados = self.modelo.aplicar_fft_y_guardar() 
+        # Conexiones
+        self.vista.cargar_senal_signal.connect(self.cargar_senal)
+        self.vista.transformada_fourier_signal.connect(self.calcular_fft)
+        self.vista.graficar_espectro_signal.connect(self.graficar_espectro)
         
-        if df_resultados is not None:
-            # Muestra el DataFrame en la QTable de la vista (Requisito 5.i)
-            self.vista.mostrar_tabla_resultados(df_resultados) 
-            self.vista.mostrar_mensaje("Cálculo FFT y guardado en CSV exitosos.")
-        else:
-            self.vista.mostrar_mensaje("Error: Señal no cargada o fallo en el cálculo FFT.")
+    def cargar_senal(self):
+        ruta, _ = QFileDialog.getOpenFileName(self.vista, "Cargar Señal", "", "Archivos MAT (*.mat)")
+        if ruta:
+            # canales = self.modelo.cargar_datos(ruta)
+            # self.vista.cargar_canales(canales)
+            self.vista.mostrar_archivo_cargado(ruta)
             
-    def graficar_espectro(self):
-        """
-        Genera y muestra el gráfico del espectro de frecuencias para un canal elegido.
-        """
-        canal = self.vista.ui.input_canal_elegido.text() # Asumiendo un input para el canal
-        if canal:
-            datos_espectro = self.modelo.obtener_espectro_canal(canal)
-            if datos_espectro:
-                self.vista.graficar_espectro(datos_espectro, canal) # La vista debe tener un método para incrustar el gráfico
-            else:
-                self.vista.mostrar_mensaje(f"Error: No se pudo obtener el espectro para el canal {canal}.")
-                
-    def calcular_desviacion(self):
-        """
-        Calcula la desviación estándar y muestra el histograma.
-        """
-        eje = self.vista.ui.radio_eje_elegido.checkedButton().text() # Asumiendo un selector de eje
+            # Mock de canales
+            self.vista.cargar_canales(["Canal 1", "Canal 2", "Canal 3"])
+
+    def calcular_fft(self):
+        # df_fft = self.modelo.calcular_fft()
+        # self.vista.mostrar_resultados_fft(df_fft)
         
-        resultado_desviacion = self.modelo.calcular_desviacion_estandar(eje)
+        # Mock para probar la tabla
+        data = {'Frecuencia (Hz)': [10, 20, 30], 'Magnitud': [0.5, 0.8, 0.2]}
+        df = pd.DataFrame(data)
+        self.vista.mostrar_resultados_fft(df)
+
+    def graficar_espectro(self, canal):
+        # data_x, data_y = self.modelo.obtener_espectro(canal)
         
-        # La vista genera y muestra el histograma (Requisito 5)
-        self.vista.graficar_histograma(resultado_desviacion, eje)
+        # Crear gráfico Matplotlib
+        fig, ax = plt.subplots(figsize=(5, 3))
+        ax.plot([1, 2, 3], [4, 5, 6]) # Mock data
+        ax.set_title(f"Espectro del {canal}")
+        ax.set_xlabel("Frecuencia")
+        
+        canvas = FigureCanvas(fig)
+        
+        # Insertar canvas en el layout de la vista
+        # Nota: La vista necesita un método que acepte el widget y lo ponga en el layout
+        # (Debes agregar un QVBoxLayout al framegraficasenal en Designer o por código)
+        # self.vista.framegraficasenal.layout().addWidget(canvas)
+        pass

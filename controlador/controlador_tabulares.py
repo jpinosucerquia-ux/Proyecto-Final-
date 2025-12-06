@@ -1,49 +1,39 @@
 # controlador/controlador_tabulares.py
-
-from modelo.modelo_tabulares import ModeloTabulares
+from PyQt5.QtWidgets import QFileDialog
+from vista.vistas_loader.vista_tabulares import VistaTabulares
+import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class ControladorTabulares:
-    """
-    Controlador para la gestión y análisis de datos tabulares (CSV).
-    """
-    def __init__(self, vista_tabulares, modelo_tabulares):
-        self.vista = vista_tabulares
-        self.modelo = modelo_tabulares
+    def __init__(self, modelo):
+        self.modelo = modelo
+        self.vista = VistaTabulares()
+        self.df = None
         
-        # Conexión de eventos
-        self.vista.ui.btn_cargar_csv.clicked.connect(self.cargar_archivo)
-        self.vista.ui.btn_graficar_columnas.clicked.connect(self.graficar_columnas)
+        self.vista.cargar_csv_signal.connect(self.cargar_csv)
+        self.vista.graficar_columna_signal.connect(self.graficar_columna)
+        
+    def cargar_csv(self):
+        ruta, _ = QFileDialog.getOpenFileName(self.vista, "Cargar CSV", "", "Archivos CSV (*.csv)")
+        if ruta:
+            self.df = pd.read_csv(ruta)
+            # Requisito: Elegir al menos 4 columnas 
+            columnas = self.df.columns.tolist()
+            self.vista.cargar_columnas_en_combo(columnas)
+            self.vista.mostrar_datos_en_tabla(self.df)
+            self.vista.mostrar_estado("CSV Cargado")
 
-    def cargar_archivo(self):
-        """
-        Carga el archivo CSV y muestra los datos en la QTable de la interfaz.
-        """
-        path = self.vista.abrir_dialogo_archivo()
-        if path:
-            df = self.modelo.cargar_csv(path)
+    def graficar_columna(self, columna):
+        if self.df is not None and columna in self.df.columns:
+            fig, ax = plt.subplots()
+            ax.plot(self.df[columna])
+            ax.set_title(f"Gráfica de {columna}")
             
-            if df is not None:
-                # Muestra los datos cargados en el área QTable (Requisito 6)
-                self.vista.mostrar_datos_en_tabla(df) 
-                
-                # Permite al usuario seleccionar columnas para graficar
-                self.vista.actualizar_selector_columnas(df.columns)
-            else:
-                self.vista.mostrar_mensaje("Error: No se pudo cargar el archivo CSV.")
-
-    def graficar_columnas(self):
-        """
-        Obtiene las 4 columnas seleccionadas por el usuario y genera gráficos tipo plot.
-        """
-        # Asumiendo que la vista tiene un método para obtener las selecciones
-        columnas_seleccionadas = self.vista.obtener_columnas_seleccionadas() 
-        
-        if len(columnas_seleccionadas) >= 1: # Mínimo 1 para graficar
-            for columna in columnas_seleccionadas:
-                # Obtiene los datos de la columna específica
-                datos_columna = self.modelo.obtener_datos_columna(columna)
-                
-                # La vista debe tener un área donde incrustar el gráfico tipo plot (Requisito 6)
-                self.vista.graficar_plot_individual(columna, datos_columna)
-        else:
-            self.vista.mostrar_mensaje("Seleccione al menos una columna para graficar.")
+            canvas = FigureCanvas(fig)
+            
+            # La vista debe tener un layout en el label o frame donde va la gráfica
+            # self.vista.layout_grafica.addWidget(canvas) 
+            # Nota: Necesitas ajustar la vista para tener un layout contenedor
+            
+            self.vista.lblGraficaCSV.setText("") # Ocultar texto si se pone gráfica encima

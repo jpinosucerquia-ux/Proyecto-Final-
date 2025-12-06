@@ -1,33 +1,28 @@
-import sys
-import os
-from PyQt5 import QtWidgets
+# main.py (Versión de Señales Ajustada)
 
-# 1. ACTUALIZACIÓN DE IMPORTACIONES
-# Ahora importamos la clase de la vista desde 'vista.vista_login'
-# y la clase del modelo desde 'modelo.modelo_auth' (anteriormente autenticacion)
-from vista.vista_login import VistaLogin # Clase de la Ventana de Login (Clase que carga Login.ui)
-from modelo.modelo_auth import ModeloUsuarios # Clase del Modelo de Autenticación
-from controlador.controlador_login import ControladorLogin # Clase del Controlador de Login
+import sys
+from PyQt5.QtWidgets import QApplication
+from controlador.controlador_login import ControladorLogin
+from controlador.controlador_principal import ControladorPrincipal
 
 if __name__ == "__main__":
-    app = QtWidgets.QApplication(sys.argv)
+    app = QApplication(sys.argv)
 
-    # 2. DEFINICIÓN DE CLASES
-    # Usamos la clase Python de la Vista (VistaLogin), que ya carga el archivo .ui
-    ventana_login_clase = VistaLogin()
+    # 1. Crear el controlador de login
+    ctrl_login = ControladorLogin(modelo_auth=None)
     
-    # 3. RUTA DEL ARCHIVO XML
-    # La ruta al XML ahora es 'config/usuarios.xml' desde la raíz del proyecto.
-    ruta_xml = os.path.join(os.path.dirname(__file__), "config", "usuarios.xml")
+    # Al tener login exitoso, esta función inicia el controlador principal
+    def iniciar_app(usuario):
+        # Esta función se llama y el controlador de login ya cerró su vista
+        principal_ctrl = ControladorPrincipal(usuario)
+        principal_ctrl.vista.show()
+        # Nota: La aplicación principal (dashboard) mantendrá el QApp vivo
     
-    # El modelo de usuarios (ModeloUsuarios)
-    modelo = ModeloUsuarios(ruta_xml)
-
-    # El controlador de Login
-    controlador = ControladorLogin(ventana_login_clase, modelo)
-
-    # 4. MOSTRAR VENTANA
-    # Ahora mostramos la clase de la Vista directamente
-    ventana_login_clase.show()
-
+    # Conectar la señal del controlador (no de la vista)
+    ctrl_login.login_exitoso.connect(iniciar_app)
+    
+    # Mostrar la ventana de Login para iniciar el ciclo
+    ctrl_login.vista.show()
+    
+    # Entregar el control al bucle de eventos
     sys.exit(app.exec_())

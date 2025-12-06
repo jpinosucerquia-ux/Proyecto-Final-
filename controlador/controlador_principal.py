@@ -1,42 +1,62 @@
 # controlador/controlador_principal.py
 
-from vista_imagenes import VistaImagenes
-# Se deben importar el resto de Vistas para la navegación:
-# from vista.vista_senales import VistaSenales
-# from vista.vista_tabulares import VistaTabulares
+from PyQt5.QtWidgets import QApplication
+from vista.vistas_loader.vista_principal import VistaPrincipal
+
+# Importar los controladores de los módulos
+from controlador.controlador_imagenes import ControladorImagenes
+from controlador.controlador_senales import ControladorSenales
+from controlador.controlador_tabulares import ControladorTabulares
+from controlador.controlador_historial import ControladorHistorial
+
 
 class ControladorPrincipal:
-    """
-    Controlador central para la navegación entre las principales funcionalidades.
-    """
-    def __init__(self, vista_principal):
-        self.vista = vista_principal
-        # self.modelo_db = modelo_db # Si maneja el registro de sesión
-        
-        # Conexión de botones de navegación (asumiendo que existen en VistaPrincipal)
-        # Ejemplo: self.vista.ui.btn_imagenes.clicked.connect(self.abrir_imagenes)
-        # Ejemplo: self.vista.ui.btn_senales.clicked.connect(self.abrir_senales)
-        # Ejemplo: self.vista.ui.btn_tabulares.clicked.connect(self.abrir_tabulares)
-        
-        # Diccionario para mantener instancias de sub-vistas
-        self.vistas_secundarias = {} 
+    def __init__(self, usuario):
+        """
+        Controlador principal del Dashboard.
+        Recibe el usuario autenticado desde el login.
+        """
+        self.usuario = usuario
 
-    def abrir_imagenes(self):
-        """
-        Abre la interfaz de procesamiento de imágenes.
-        """
-        if 'imagenes' not in self.vistas_secundarias:
-            # Requeriría la instancia del modelo de imágenes
-            # modelo_img = ... 
-            
-            vista_img = VistaImagenes()
-            # controlador_img = ControladorImagenes(vista_img, modelo_img)
-            
-            self.vistas_secundarias['imagenes'] = vista_img # o controlador_img
-        
-        # Asumiendo que la vista principal tiene un QStackedWidget o similar para mostrar el contenido
-        # self.vista.ui.stackedWidget.setCurrentWidget(self.vistas_secundarias['imagenes']) 
-        
-        self.vistas_secundarias['imagenes'].show()
-        
-    # Aquí se añadirían métodos similares para abrir señales y tabulares...
+        self.usuario = usuario
+        self.vista = VistaPrincipal()
+        self.vista.actualizar_usuario(usuario)
+
+
+        # Inicializar controladores hijos
+        # (sus vistas deben ser QWidget, no QMainWindow ni QDialog)
+        self.ctrl_imagenes = ControladorImagenes(modelo=None)
+        self.ctrl_senales = ControladorSenales(modelo=None)
+        self.ctrl_tabulares = ControladorTabulares(modelo=None)
+        self.ctrl_historial = ControladorHistorial(modelo=None)
+
+        # Conectar señales del menú lateral
+        self.vista.navegar_imagenes_signal.connect(self.mostrar_imagenes)
+        self.vista.navegar_senales_signal.connect(self.mostrar_senales)
+        self.vista.navegar_csv_signal.connect(self.mostrar_tabulares)
+        self.vista.navegar_historial_signal.connect(self.mostrar_historial)
+        self.vista.cerrar_sesion_signal.connect(self.cerrar_sesion)
+
+        # Vista inicial
+        self.mostrar_imagenes()
+
+        # Mostrar ventana principal
+        self.vista.show()
+
+    # ---------------- Navegación ----------------
+
+    def mostrar_imagenes(self):
+        self.vista.mostrar_vista_contenido(self.ctrl_imagenes.vista)
+
+    def mostrar_senales(self):
+        self.vista.mostrar_vista_contenido(self.ctrl_senales.vista)
+
+    def mostrar_tabulares(self):
+        self.vista.mostrar_vista_contenido(self.ctrl_tabulares.vista)
+
+    def mostrar_historial(self):
+        self.vista.mostrar_vista_contenido(self.ctrl_historial.vista)
+
+    def cerrar_sesion(self):
+        self.vista.close()
+        # El control vuelve a main.py
